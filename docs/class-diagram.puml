@@ -1,0 +1,246 @@
+@startuml Sistema de Ventas - Diagrama de Clases
+
+skinparam class {
+    BackgroundColor<<Entity>> LightYellow
+    BackgroundColor<<Embeddable>> LightBlue
+    BackgroundColor<<Repository>> LightGreen
+    BackgroundColor<<Service>> LightCyan
+    BackgroundColor<<Controller>> LightPink
+    BorderColor Black
+    ArrowColor Black
+}
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 100
+
+' ==================== CONTROLLERS ====================
+class TiendaObjetosController <<Controller>> {
+    - service: TiendaObjetosService
+    __
+    + getAll(): List<TiendaObjetos>
+    + getById(Long): ResponseEntity<TiendaObjetos>
+}
+
+class TiendaOnlineController <<Controller>> {
+    - service: TiendaOnlineService
+    __
+    + getAllTiendasOnline(): ResponseEntity<List<TiendaOnline>>
+    + getTiendaOnlineById(Long): ResponseEntity<TiendaOnline>
+    + createTiendaOnline(TiendaOnline): ResponseEntity<TiendaOnline>
+    + updateTiendaOnline(Long, TiendaOnline): ResponseEntity<TiendaOnline>
+    + deleteTiendaOnline(Long): ResponseEntity<Void>
+}
+
+class TiendaFisicaController <<Controller>> {
+    - service: TiendaFisicaService
+    __
+    + getAllTiendasFisicas(): ResponseEntity<List<TiendaFisica>>
+    + getTiendaFisicaById(Long): ResponseEntity<TiendaFisica>
+    + createTiendaFisica(TiendaFisica): ResponseEntity<TiendaFisica>
+    + updateTiendaFisica(Long, TiendaFisica): ResponseEntity<TiendaFisica>
+    + deleteTiendaFisica(Long): ResponseEntity<Void>
+}
+
+' ==================== SERVICES ====================
+class TiendaObjetosService <<Service>> {
+    - repository: TiendaObjetosRepository
+    __
+    + findAll(): List<TiendaObjetos>
+    + findById(Long): Optional<TiendaObjetos>
+}
+
+class TiendaOnlineService <<Service>> {
+    - repository: TiendaOnlineRepository
+    __
+    + findAll(): List<TiendaOnline>
+    + findById(Long): Optional<TiendaOnline>
+    + save(TiendaOnline): TiendaOnline
+    + update(Long, TiendaOnline): TiendaOnline
+    + deleteById(Long): void
+}
+
+class TiendaFisicaService <<Service>> {
+    - repository: TiendaFisicaRepository
+    __
+    + findAll(): List<TiendaFisica>
+    + findById(Long): Optional<TiendaFisica>
+    + save(TiendaFisica): TiendaFisica
+    + update(Long, TiendaFisica): TiendaFisica
+    + deleteById(Long): void
+}
+
+' ==================== REPOSITORIES ====================
+interface TiendaObjetosRepository <<Repository>> {
+    + findAll(): List<TiendaObjetos>
+    + findById(Long): Optional<TiendaObjetos>
+    + save(TiendaObjetos): TiendaObjetos
+}
+
+interface TiendaOnlineRepository <<Repository>> {
+    + findAll(): List<TiendaOnline>
+    + findById(Long): Optional<TiendaOnline>
+    + save(TiendaOnline): TiendaOnline
+    + deleteById(Long): void
+}
+
+interface TiendaFisicaRepository <<Repository>> {
+    + findAll(): List<TiendaFisica>
+    + findById(Long): Optional<TiendaFisica>
+    + save(TiendaFisica): TiendaFisica
+    + deleteById(Long): void
+}
+
+' ==================== ENTITIES ====================
+abstract class TiendaObjetos <<Entity>> {
+    - id: Long
+    - pedido: TipoPedido
+}
+
+class TiendaOnline <<Entity>> {
+    - urlWeb: String
+    - envioGratis: Boolean
+}
+
+class TiendaFisica <<Entity>> {
+    - horarioAtencion: String
+    - numeroEmpleados: Integer
+}
+
+' ==================== EMBEDDABLES ====================
+class TipoPedido <<Embeddable>> {
+    - cliente: TipoCliente
+    - fechaPedido: LocalDate
+    - estado: String
+    - detalles: List<TipoDetallePedido>
+    - total: BigDecimal
+    __
+    + getCliente(): TipoCliente
+    + setCliente(TipoCliente): void
+    + getFechaPedido(): LocalDate
+    + setFechaPedido(LocalDate): void
+    + getEstado(): String
+    + setEstado(String): void
+    + getDetalles(): List<TipoDetallePedido>
+    + setDetalles(List): void
+    + getTotal(): BigDecimal
+    + setTotal(BigDecimal): void
+}
+
+class TipoCliente <<Embeddable>> {
+    - nombre: String
+    - email: String
+    - telefono: String
+    - direccion: Direccion
+    __
+    + getNombre(): String
+    + setNombre(String): void
+    + getEmail(): String
+    + setEmail(String): void
+    + getTelefono(): String
+    + setTelefono(String): void
+    + getDireccion(): Direccion
+    + setDireccion(Direccion): void
+}
+
+class TipoDetallePedido <<Embeddable>> {
+    - producto: TipoProducto
+    - cantidad: Integer
+    - precioUnitario: BigDecimal
+    __
+    + getProducto(): TipoProducto
+    + setProducto(TipoProducto): void
+    + getCantidad(): Integer
+    + setCantidad(Integer): void
+    + getPrecioUnitario(): BigDecimal
+    + setPrecioUnitario(BigDecimal): void
+}
+
+class TipoProducto <<Embeddable>> {
+    - nombre: String
+    - descripcion: String
+    - precio: BigDecimal
+    - stock: Integer
+    - activo: Boolean
+    - categoria: TipoCategoria
+    __
+    + getNombre(): String
+    + setNombre(String): void
+    + getDescripcion(): String
+    + setDescripcion(String): void
+    + getPrecio(): BigDecimal
+    + setPrecio(BigDecimal): void
+    + getStock(): Integer
+    + setStock(Integer): void
+    + getActivo(): Boolean
+    + setActivo(Boolean): void
+    + getCategoria(): TipoCategoria
+    + setCategoria(TipoCategoria): void
+}
+
+class TipoCategoria <<Embeddable>> {
+    - nombre: String
+    - descripcion: String
+    - departamento: String
+    __
+    + getNombre(): String
+    + setNombre(String): void
+    + getDescripcion(): String
+    + setDescripcion(String): void
+    + getDepartamento(): String
+    + setDepartamento(String): void
+}
+
+class Direccion <<Embeddable>> {
+    - calle: String
+    - ciudad: String
+    - codigoPostal: String
+    - pais: String
+    __
+    + getCalle(): String
+    + setCalle(String): void
+    + getCiudad(): String
+    + setCiudad(String): void
+    + getCodigoPostal(): String
+    + setCodigoPostal(String): void
+    + getPais(): String
+    + setPais(String): void
+}
+
+' ==================== RELACIONES PRINCIPALES ====================
+
+' Herencia
+TiendaObjetos <|-- TiendaOnline
+TiendaObjetos <|-- TiendaFisica
+
+' Composición (Embeddables)
+TiendaObjetos *-- TipoPedido
+TipoPedido *-- TipoCliente
+TipoPedido *-- "1..*" TipoDetallePedido
+TipoCliente *-- Direccion
+TipoDetallePedido *-- TipoProducto
+TipoProducto *-- TipoCategoria
+
+' ==================== RELACIONES REPOSITORIES ====================
+TiendaObjetosRepository ..> TiendaObjetos : "manages"
+TiendaOnlineRepository ..> TiendaOnline : "manages"
+TiendaFisicaRepository ..> TiendaFisica : "manages"
+
+' ==================== RELACIONES SERVICES ====================
+TiendaObjetosService --> TiendaObjetosRepository : "uses"
+TiendaOnlineService --> TiendaOnlineRepository : "uses"
+TiendaFisicaService --> TiendaFisicaRepository : "uses"
+
+TiendaObjetosService ..> TiendaObjetos : "works with"
+TiendaOnlineService ..> TiendaOnline : "works with"
+TiendaFisicaService ..> TiendaFisica : "works with"
+
+' ==================== RELACIONES CONTROLLERS ====================
+TiendaObjetosController --> TiendaObjetosService : "uses"
+TiendaOnlineController --> TiendaOnlineService : "uses"
+TiendaFisicaController --> TiendaFisicaService : "uses"
+
+TiendaObjetosController ..> TiendaObjetos : "returns"
+TiendaOnlineController ..> TiendaOnline : "returns"
+TiendaFisicaController ..> TiendaFisica : "returns"
+
+@enduml

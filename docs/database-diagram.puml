@@ -1,0 +1,155 @@
+@startuml Sistema de Ventas - Diagrama de Base de Datos
+
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b><color:#b8861b><&key></color> x</b>
+!define foreign_key(x) <color:#aaaaaa><&key></color> x
+!define column(x) <color:#efefef><&media-record></color> x
+!define table(x) entity x << (T, #FFAAAA) >>
+
+skinparam linetype ortho
+skinparam nodesep 100
+skinparam ranksep 100
+
+' ==================== TABLA PRINCIPAL ====================
+entity "tienda_objetos" as tienda_objetos {
+  primary_key(id): BIGINT <<PK>>
+  --
+  column(pedido_cliente_nombre): VARCHAR(100)
+  column(pedido_cliente_email): VARCHAR(100)
+  column(pedido_cliente_telefono): VARCHAR(20)
+  column(pedido_cliente_direccion_calle): VARCHAR(100)
+  column(pedido_cliente_direccion_ciudad): VARCHAR(50)
+  column(pedido_cliente_direccion_codigo_postal): VARCHAR(10)
+  column(pedido_cliente_direccion_pais): VARCHAR(50)
+  column(pedido_fecha_pedido): DATE
+  column(pedido_estado): VARCHAR(20)
+  column(pedido_total): DECIMAL(10,2)
+}
+
+' ==================== TABLAS DE SUBCLASES ====================
+entity "tienda_online" as tienda_online {
+  primary_key(id): BIGINT <<PK, FK>>
+  --
+  column(url_web): VARCHAR(255)
+  column(envio_gratis): BOOLEAN
+}
+
+entity "tienda_fisica" as tienda_fisica {
+  primary_key(id): BIGINT <<PK, FK>>
+  --
+  column(horario_atencion): VARCHAR(255)
+  column(numero_empleados): INTEGER
+}
+
+' ==================== TABLA DE DETALLES DE PEDIDO ====================
+entity "pedido_detalles" as pedido_detalles {
+  primary_key(id): BIGINT <<Generated>>
+  foreign_key(tienda_objetos_id): BIGINT <<FK>>
+  --
+  column(detalle_producto_nombre): VARCHAR(150)
+  column(detalle_producto_descripcion): TEXT
+  column(detalle_producto_precio): DECIMAL(10,2)
+  column(detalle_producto_stock): INTEGER
+  column(detalle_producto_activo): BOOLEAN
+  column(detalle_producto_categoria_nombre): VARCHAR(100)
+  column(detalle_producto_categoria_descripcion): TEXT
+  column(detalle_producto_categoria_departamento): VARCHAR(50)
+  column(detalle_cantidad): INTEGER
+  column(detalle_precio_unitario): DECIMAL(10,2)
+}
+
+' ==================== RELACIONES ====================
+
+' Herencia JOINED (Subclases)
+tienda_objetos ||--|| tienda_online : "JOINED\nInheritance"
+tienda_objetos ||--|| tienda_fisica : "JOINED\nInheritance"
+
+' Relación Uno a Muchos (Detalles de Pedido)
+tienda_objetos ||--o{ pedido_detalles : "contains\ndetalles"
+
+' ==================== NOTAS ====================
+note right of tienda_objetos
+  **TABLA BASE (Estrategia JOINED)**
+  ================================
+  Contiene información del pedido
+  embebido con datos del cliente
+  y su dirección.
+  
+  **Cliente Embebido:**
+  - Nombre, Email, Teléfono
+  - Dirección completa
+  
+  **Pedido:**
+  - Fecha, Estado, Total
+end note
+
+note right of tienda_online
+  **SUBCLASE: Tienda Online**
+  ==========================
+  Hereda de tienda_objetos
+  mediante estrategia JOINED.
+  
+  **Atributos específicos:**
+  - URL del sitio web
+  - Indicador de envío gratis
+end note
+
+note right of tienda_fisica
+  **SUBCLASE: Tienda Física**
+  ===========================
+  Hereda de tienda_objetos
+  mediante estrategia JOINED.
+  
+  **Atributos específicos:**
+  - Horario de atención
+  - Número de empleados
+end note
+
+note bottom of pedido_detalles
+  **TABLA COLLECTION (@ElementCollection)**
+  =========================================
+  Almacena los detalles de cada pedido
+  con información completa del producto
+  y su categoría (desnormalizado).
+  
+  **Producto Embebido:**
+  - Nombre, Descripción, Precio
+  - Stock, Estado (activo)
+  - Categoría completa
+  
+  **Detalle:**
+  - Cantidad solicitada
+  - Precio unitario al momento de la compra
+  
+  Relación: Muchos detalles por cada tienda_objetos
+end note
+
+note top of tienda_objetos
+  **DISCRIMINADOR IMPLÍCITO**
+  El tipo de tienda se determina
+  por la tabla hija (JOINED strategy).
+  No hay columna discriminadora.
+end note
+
+' ==================== LEYENDA ====================
+legend bottom right
+  **CONVENCIONES**
+  ================
+  <&key> PK = Primary Key
+  <&key> FK = Foreign Key
+  <&media-record> = Column
+  
+  **ESTRATEGIA DE HERENCIA:**
+  JOINED - Cada clase tiene su propia tabla
+  
+  **TIPOS DE DATOS:**
+  BIGINT, VARCHAR, INTEGER, DECIMAL, 
+  BOOLEAN, DATE, TEXT
+  
+  **CARDINALIDADES:**
+  ||--|| : Uno a Uno
+  ||--o{ : Uno a Muchos
+  }o--|| : Muchos a Uno
+end legend
+
+@enduml
